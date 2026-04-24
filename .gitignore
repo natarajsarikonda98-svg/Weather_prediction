@@ -9,7 +9,6 @@ outputs/metrics/*
 !outputs/metrics/drift_history.csv
 !models/
 *.docx
-EXPLANATION_GUIDE.txt
-test_dtypes.txt
-.gemini/
 *.log
+*.tmp
+*.bak
