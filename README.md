@@ -1,29 +1,24 @@
-# MSc Computing Desertation Project: Machine Learning–Based Seasonal Weather Prediction Across Regions
+# MSc Computing Dissertation Project: Machine Learning–Based Seasonal Weather Prediction Across Regions
 
-This repository contains a implementation for predicting regional weather patterns across the UK. The project evaluates **Optimized XGBoost** and **Optimized Neural Network** architectures and provides a high-fidelity glassmorphism dashboard for result visualization.
+This repository contains a professional implementation for predicting regional weather patterns across the UK. The project evaluates **Optimized XGBoost** and **Optimized Neural Network** architectures and provides a high-fidelity dashboard for result visualization.
+
+## 📂 File Inventory & Purpose
+
+| File / Folder | Purpose |
+| :--- | :--- |
+| **`run.py`** | The main orchestrator. Launches the local server, starts the ML pipeline, and opens the dashboard. |
+| **`config.py`** | Central configuration for all file paths, API coordinates, and model hyperparameters. |
+| **`requirements.txt`** | List of all Python dependencies required to run the project. |
+| **`src/weather_ml.py`** | The core Machine Learning logic (Feature Engineering & Model Training). |
+| **`src/live_pipeline.py`** | The "Catch-Up" engine that handles daily retraining and live data ingestion. |
+| **`models/`** | Contains optimized model weights (.joblib). These allow the system to "warm-start" without retraining from year one. |
+| **`outputs/metrics/`** | Stores the `drift_history.csv` which acts as a timestamp bookmark for retraining. |
+| **`dashboard/`** | Contains the frontend interface (HTML/JS/CSS) for the weather visualization. |
+| **`fetch_dataset.py`** | Utility to download historical archives for initial project setup. |
+| **`tune_models.py`** | Script used to conduct the hyperparameter optimization (Randomized Search). |
+| **`analyze_nulls.py`** | Data quality audit script used to verify dataset integrity. |
 
 ## Architecture & Workflow
-
-The project follows a rigorous Step wise Machine Learning Pipeline:
-1.  **Data Acquisition**: Real-time fetching from the Open-Meteo Historical API (2015-2025).
-2.  **Exploratory Data Analysis (EDA)**: Correlation heatmaps and missing value audits.
-3.  **Feature Engineering**: Advanced temporal lags (Lag_1, Lag_7), rolling averages (Week/Month), and astronomical season classification.
-4.  **Optimized Training**: Hyperparameter-tuned models with RandomizedSearchCV and 3-fold Cross-Validation.
-5.  **Interpretability**: Full SHAP Analysis to explain model "Black-Box" decisions.
-6.  **Anomaly Detection**: Statistical Z-Score detection (|Z| > 2.5) for extreme regional weather events (Focused on Middlesbrough for study purpose).
-
----
-
-## Folder Structure
-- `data/`: Raw API caches and processed ML-ready features.
-- `models/`: Optimized production-ready model artifacts (.joblib).
-- `src/weather_ml.py`: The core 11-Step ML Backend Engine.
-- `dashboard/`: Frontend glassmorphism interface (HTML/JS/CSS).
-- `outputs/`: 
-    - `plots/`: All visual outputs (like SHAP, Trends, Anomalies, Feature Importance).
-    - `reports/`: Academic summaries and performance CSVs.
-- `run.py`: The main project orchestrator.
-- `venv` : All the requirements to activate virtual environment.
 
 ---
 
