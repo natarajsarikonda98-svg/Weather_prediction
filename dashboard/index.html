@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seasonal Weather Prediction Dashboard</title>
+    <meta name="description" content="Machine Learning-Based Seasonal Weather Prediction Dashboard for 10 UK Regions">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2">
+    <!-- PapaParse for reading the CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- Chart.js for Live Data Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- Prevent FOUC (Flash of Unstyled Content) for the Theme -->
+    <script>
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-mode');
+        }
+    </script>
+    <div class="app-container">
+        <div class="sticky-nav-wrapper">
+            <header class="header-top">
+                <div class="header-left">
+                    <h1>ML Weather Prediction</h1>
+                    <p>Teesside University | MSc Computing Project</p>
+                </div>
+                <div class="header-right">
+                    <button id="theme-toggle" class="btn-theme">Toggle Theme</button>
+                </div>
+            </header>
+
+            <nav class="tabs">
+                <button class="tab-btn active" data-target="tab-executive">Dashboard</button>
+                <button class="tab-btn" data-target="tab-predictor">365-Day Predictor</button>
+                <button class="tab-btn" data-target="tab-analytics">Performance & Drift</button>
+                <button class="tab-btn" data-target="tab-settings">Configuration</button>
+                <button class="tab-btn" data-target="tab-validation">14-Day Scientific Validation</button>
+            </nav>
+        </div>
+
+        <main class="content-area">
+            <!-- TAB 1: Executive Dashboard -->
+            <section id="tab-executive" class="tab-content active">
+                <div class="glass-card mb-2">
+                    <h3>Project Scope KPIs</h3>
+                    <div class="grid-3 mt-1">
+                        <div class="metric-item">
+                            <span>Total Data Rows</span>
+                            <strong id="kpi-rows">--</strong>
+                        </div>
+                        <div class="metric-item">
+                            <span>Regions Monitored</span>
+                            <strong>10 UK Cities</strong>
+                        </div>
+                        <div class="metric-item">
+                            <span>Data Baseline</span>
+                            <strong>2001 - 2024</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="glass-card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                            <h3 class="gradient-text" style="margin: 0; padding-bottom: 0px; border-bottom: none;">Live
+                                Prediction</h3>
+                            <select id="live-region-select" class="date-input"
+                                style="padding: 0.3rem 0.5rem; font-size: 0.85rem; width: auto;">
+                                <option value="London">London</option>
+                                <option value="Manchester">Manchester</option>
+                                <option value="Birmingham">Birmingham</option>
+                                <option value="Leeds">Leeds</option>
+                                <option value="Glasgow">Glasgow</option>
+                                <option value="Southampton">Southampton</option>
+                                <option value="Liverpool">Liverpool</option>
+                                <option value="Newcastle">Newcastle</option>
+                                <option value="Sheffield">Sheffield</option>
+                                <option value="Middlesbrough">Middlesbrough</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                            <div id="live-status-dot" style="width: 10px; height: 10px; border-radius: 50%; background: #444; animation: none;"></div>
+                            <p id="live-status-text" class="text-small text-muted" style="margin:0;">Initializing live feed...</p>
+                        </div>
+                        <div id="live-block" class="results-grid mt-1">
+                            <div class="result-box predicted">
+                                <h4>AI Predicted</h4>
+                                <p id="live-pred">-- °C</p>
+                                <span id="live-pred-model" class="text-small text-muted" style="font-size:0.7rem;"></span>
+                            </div>
+                            <div class="result-box actual">
+                                <h4>Actual (Live)</h4>
+                                <p id="live-act">-- °C</p>
+                                <span id="live-act-time" class="text-small text-muted" style="font-size:0.7rem;"></span>
+                            </div>
+                            <div class="result-box error">
+                                <h4>Drift Error</h4>
+                                <p id="live-error">-- °C</p>
+                                <span id="live-error-label" class="text-small text-muted" style="font-size:0.7rem;"></span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem;">
+                            <p id="live-updated" class="text-small text-muted" style="margin:0; font-size: 0.7rem;">Last updated: --</p>
+                            <button id="live-refresh-btn" class="btn-secondary btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">↻ Refresh</button>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <h3>Retraining Health</h3>
+                        <div class="health-card mt-2">
+                            <div id="health-indicator" class="status-indicator"></div>
+                            <h2 id="health-status-text" class="success-text mt-1">Status: Baseline Complete</h2>
+                            <p id="health-data-range" class="mt-1">Data: 2001-2024 | Trained: 2001-2019 | Tested: 2020-2024</p>
+                            <div id="health-drift-details" class="drift-placeholder mt-2 p-2">
+                                <p class="text-muted text-small"> <strong>Awaiting ML Pipeline Step</strong><br>The
+                                    Concept Drift module (2026 Walk-Forward Validation) will activate this panel once
+                                    implemented in the backend.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: 365-Day Predictor -->
+            <section id="tab-predictor" class="tab-content">
+                <div class="glass-card">
+                    <h3>Interactive 365-Day Predictor</h3>
+                    <p>This interactive suite validates the project's AI models across any timeframe. Select any region and date to see the system autonomously transition between **Verified Historical Archives** and **AI RESEARCH FORECASTS**. It uses a 20-year climatological baseline to prove the model's reliability across full seasonal cycles, bridging past results with future projections.</p>
+
+                    <div class="controls-row mt-2">
+                        <div class="control-group">
+                            <label for="region-select">Region</label>
+                            <select id="region-select" disabled>
+                                <option>Loading...</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label for="date-select">Date</label>
+                            <input type="date" id="date-select" disabled class="date-input">
+                        </div>
+                        <button id="predict-btn" class="btn-primary" disabled>Deploy Predictor</button>
+                    </div>
+
+                    <div id="prediction-results" class="results-grid hidden mt-2"
+                        style="grid-template-columns: repeat(5, 1fr);">
+                        <div class="result-box actual">
+                            <h4 id="res-actual-label">Actual Temp</h4>
+                            <p id="res-actual">-- °C</p>
+                        </div>
+                        <div class="result-box predicted">
+                            <h4>Neural Net Prediction</h4>
+                            <p id="res-pred-nn">-- °C</p>
+                        </div>
+                        <div class="result-box error">
+                            <h4>Neural Net Error</h4>
+                            <p id="res-err-nn">-- °C</p>
+                        </div>
+                        <div class="result-box predicted">
+                            <h4>XGBoost Prediction</h4>
+                            <p id="res-pred-xgb">-- °C</p>
+                        </div>
+                        <div class="result-box error">
+                            <h4>XGBoost Error</h4>
+                            <p id="res-err-xgb">-- °C</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: Concept Drift & Analytics -->
+            <section id="tab-analytics" class="tab-content">
+                <div class="glass-card mb-2">
+                    <h3>Performance Over Time (Concept Drift Tracker)</h3>
+                    <p>This chart tracks the daily MAE error limits of the two Elite Models (Optimized XGBoost vs Neural Network). It proves self-healing capabilities as the Live Catch-Up Engine retrains daily.</p>
+                    <div class="chart-container" style="position: relative; height:350px; width:100%; margin-top: 1rem;">
+                        <canvas id="driftChart"></canvas>
+                    </div>
+                    <div class="image-actions mt-1">
+                        <button id="fullscreen-drift-btn" class="btn-secondary btn-sm">Full Screen</button>
+                        <button id="download-drift-btn" class="btn-secondary btn-sm">Download PNG</button>
+                    </div>
+                </div>
+
+                <div class="grid-2 mb-2">
+                    <div class="glass-card">
+                        <h3>Base Models Comparison</h3>
+                        <h4 class="mt-1 text-muted">Random Forest</h4>
+                        <div id="base-rf-metrics" class="metrics-grid mt-1 mb-2">
+                            <p>Loading...</p>
+                        </div>
+                        <h4 class="text-muted">Deep Neural Network (MLP)</h4>
+                        <div id="base-nn-metrics" class="metrics-grid mt-1 mb-2">
+                            <p>Loading...</p>
+                        </div>
+                        <h4 class="text-muted">XGBoost </h4>
+                        <div id="base-xgb-metrics" class="metrics-grid mt-1">
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                    <div class="glass-card metric-card">
+                        <h3 class="gradient-text">Top 2 Optimized Models</h3>
+                        <h4 class="mt-1 text-muted">Optimized Neural Network</h4>
+                        <div id="opt-nn-metrics" class="metrics-grid mt-1 mb-2">
+                            <p>Loading...</p>
+                        </div>
+                        <h4 class="text-muted">Optimized XGBoost (CV Tuned)</h4>
+                        <div id="opt-xgb-metrics" class="metrics-grid mt-1">
+                            <p>Loading...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card mb-2" id="model-explanation-box" style="display: none;">
+                    <h3>Model Performance Analysis</h3>
+                    <p id="model-explanation-text" class="text-small mt-1" style="line-height: 1.5;"></p>
+                </div>
+
+                <div class="grid-2 mb-2">
+                    <div class="glass-card img-card">
+                        <h3>Model Comparison (MAE vs R²)</h3>
+                        <p>A consolidated view of performance across tuned models, comparing error margins and
+                            goodness-of-fit.</p>
+                        <div class="image-wrapper mt-2">
+                            <img src="../outputs/plots/model_comparison_plot.png" alt="Model Comparison Plot"
+                                class="gallery-img" onerror="this.onerror=null; this.src='fallback.png';">
+                            <div class="image-actions mt-1">
+                                <button class="btn-secondary btn-sm js-zoom"> Fullscreen</button>
+                                <a href="../outputs/plots/model_comparison_plot.png"
+                                    download="model_comparison_plot.png" class="btn-secondary btn-sm text-center">
+                                    Download</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card img-card">
+                        <h3>Residual Distribution (Error Analysis)</h3>
+                        <p>Analyzing the prediction errors (Actual - Predicted). A narrow, centered curve proves model
+                            stability.</p>
+                        <div class="image-wrapper mt-2">
+                            <img src="../outputs/plots/residual_distribution_plot.png" alt="Residual Distribution"
+                                class="gallery-img" onerror="this.onerror=null; this.src='fallback.png';">
+                            <div class="image-actions mt-1">
+                                <button class="btn-secondary btn-sm js-zoom"> Fullscreen</button>
+                                <a href="../outputs/plots/residual_distribution_plot.png"
+                                    download="residual_distribution_plot.png" class="btn-secondary btn-sm text-center">
+                                    Download</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2 mb-2">
+                    <div class="glass-card img-card">
+                        <h3>Actual vs Predicted (Accuracy Plot)</h3>
+                        <p>Visualizing how close predictions follow the 1:1 perfect line. Tighter grouping indicates
+                            higher precision.</p>
+                        <div class="image-wrapper mt-2">
+                            <img src="../outputs/plots/actual_vs_predicted_plot.png" alt="Actual vs Predicted"
+                                class="gallery-img" onerror="this.onerror=null; this.src='fallback.png';">
+                            <div class="image-actions mt-1">
+                                <button class="btn-secondary btn-sm js-zoom"> Fullscreen</button>
+                                <a href="../outputs/plots/actual_vs_predicted_plot.png"
+                                    download="actual_vs_predicted_plot.png" class="btn-secondary btn-sm text-center">
+                                    Download</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card img-card">
+                        <h3>Optimized Feature Importance</h3>
+                        <p>The primary features driving the optimized results, showing the impact of historical lags and
+                            rolling means.</p>
+                        <div class="image-wrapper mt-2">
+                            <img src="../outputs/plots/feature_importance_plot.png" alt="Tuned Feature Importance"
+                                class="gallery-img" onerror="this.onerror=null; this.src='fallback.png';">
+                            <div class="image-actions mt-1">
+                                <button class="btn-secondary btn-sm js-zoom"> Fullscreen</button>
+                                <a href="../outputs/plots/feature_importance_plot.png"
+                                    download="optimized_feature_importance.png"
+                                    class="btn-secondary btn-sm text-center"> Download</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2 mb-2">
+                    <div class="glass-card img-card">
+                        <h3>AI Decision Making (SHAP Analysis)</h3>
+                        <p>Explaining how the ML model makes its predictions (e.g., proving that "lag temperature" or
+                            "humidity" drives the output), solving the black-box problem.</p>
+                        <div class="image-wrapper mt-2">
+                            <img src="../outputs/plots/shap_summary_plot.png" alt="SHAP Plot" class="gallery-img"
+                                onerror="this.onerror=null; this.src='fallback.png';">
+                            <div class="image-actions mt-1">
+                                <button class="btn-secondary btn-sm js-zoom"> Fullscreen</button>
+                                <a href="../outputs/plots/shap_summary_plot.png" download="shap_analysis_plot.png"
+                                    class="btn-secondary btn-sm text-center"> Download</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card img-card">
+                        <h3>Native Feature Importance (F-Score)</h3>
+                        <p>The pure XGBoost calculated weight of each scientific feature in determining the model's
+                            split decisions.</p>
+                        <div class="image-wrapper mt-2">
+                            <img src="../outputs/plots/feature_importance_native_fscore.png" alt="Feature Importance"
+                                class="gallery-img" onerror="this.onerror=null; this.src='fallback.png';">
+                            <div class="image-actions mt-1">
+                                <button class="btn-secondary btn-sm js-zoom"> Fullscreen</button>
+                                <a href="../outputs/plots/feature_importance_native_fscore.png"
+                                    download="native_feature_importance.png" class="btn-secondary btn-sm text-center">
+                                    Download</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: Settings & Data (The Engineer's View) -->
+            <section id="tab-settings" class="tab-content">
+                <div class="grid-2 mb-2">
+                    <div class="glass-card action-card">
+                        <h3>Pipeline Auto-Retrain Controls</h3>
+                        <p class="text-small mb-1" style="color: #00e676;">24-Hour Autonomous Daemon Active</p>
+                        <p class="text-small mb-1 text-muted">The Live Catch-Up Engine automatically fetches Open-Meteo data every 5 minutes and recalculates Neural Network / XGBoost drift matrices daily at 00:00.</p>
+                        <button id="force-retrain-btn" class="btn-primary mt-2 w-100" style="background: linear-gradient(135deg, #ff5252 0%, #d50000 100%);">Force Instant Retrain Cycle</button>
+                    </div>
+
+                    <div class="glass-card">
+                        <h3>Data Downloads & Inspection</h3>
+                        <p class="text-small mb-1">Direct access to the backend data files used by the pipeline.</p>
+                        <p class="text-small text-muted mb-2" style="font-style: italic; font-size: 0.75rem;">
+                            <strong>Note:</strong> Browsers block local file access for security. To use the 'View'
+                            feature, please serve the project via a local server (e.g.,
+                            <code>python -m http.server</code>).
+                        </p>
+                        <div class="mt-2">
+                            <div class="download-item mb-1">
+                                <span>Weather Features</span>
+                                <div class="btn-group">
+                                    <button class="btn-secondary btn-sm js-view-csv"
+                                        data-file="../data/processed/weather_features.csv"> View</button>
+                                    <a href="../data/processed/weather_features.csv" class="btn-secondary btn-sm"
+                                        download="weather_features.csv"> Download</a>
+                                </div>
+                            </div>
+                            <div class="download-item mb-1">
+                                <span>Test Predictions</span>
+                                <div class="btn-group">
+                                    <button class="btn-secondary btn-sm js-view-csv"
+                                        data-file="../outputs/reports/predictions.csv"> View</button>
+                                    <a href="../outputs/reports/predictions.csv" class="btn-secondary btn-sm"
+                                        download="model_predictions_test.csv">
+                                        Download</a>
+                                </div>
+                            </div>
+                            <div class="download-item mb-1">
+                                <span>Project Summary</span>
+                                <div class="btn-group">
+                                    <button class="btn-secondary btn-sm js-view-csv"
+                                        data-file="../outputs/reports/project_summary.txt"> View</button>
+                                    <a href="../outputs/reports/project_summary.txt" class="btn-secondary btn-sm"
+                                        download="project_summary.txt">
+                                        Download</a>
+                                </div>
+                            </div>
+                            <div class="download-item mb-1">
+                                <span>Pipeline Run Log</span>
+                                <div class="btn-group">
+                                    <button class="btn-secondary btn-sm js-view-csv"
+                                        data-file="../outputs/logs/run.log">
+                                        View</button>
+                                    <a href="../outputs/logs/run.log" class="btn-secondary btn-sm"
+                                        download="pipeline_run.log"> Download</a>
+                                </div>
+                            </div>
+                            <div class="download-item mb-1">
+                                <span>Final Performance Metrics</span>
+                                <div class="btn-group">
+                                    <button class="btn-secondary btn-sm js-view-csv"
+                                        data-file="../outputs/reports/final_model_performance_summary.csv">
+                                        View</button>
+                                    <a href="../outputs/reports/final_model_performance_summary.csv"
+                                        class="btn-secondary btn-sm" download="performance_summary_table.csv">
+                                        Download</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card img-card">
+                    <h3>Data Analysis Gallery</h3>
+                    <div class="grid-2 mt-2">
+                        <div class="image-wrapper">
+                            <h4>Feature Correlation Analysis</h4>
+                            <p class="text-small text-muted mb-1">A heatmap showing how different weather signals (like
+                                temperature and precipitation) move together. High correlation helps the model identify
+                                redundancies.</p>
+                            <img src="../outputs/plots/correlation_heatmap.png" alt="Correlation Heatmap"
+                                class="gallery-img" onerror="this.onerror=null; this.src='fallback.png';">
+                            <div class="image-actions mt-1">
+                                <button class="btn-secondary btn-sm js-zoom"> Fullscreen</button>
+                                <a href="../outputs/plots/correlation_heatmap.png" download="correlation_heatmap.png"
+                                    class="btn-secondary btn-sm text-center"> Download</a>
+                            </div>
+                        </div>
+                        <div class="image-wrapper">
+                            <h4>Regional Temperature Trends</h4>
+                            <p class="text-small text-muted mb-1">Historical temperature patterns across 10 UK cities
+                                over the last decade, used to capture regional seasonality.</p>
+                            <img src="../outputs/plots/temperature_trends_by_region.png" alt="Temperature Trends"
+                                class="gallery-img" onerror="this.onerror=null; this.src='fallback.png';">
+                            <div class="image-actions mt-1">
+                                <button class="btn-secondary btn-sm js-zoom"> Fullscreen</button>
+                                <a href="../outputs/plots/temperature_trends_by_region.png"
+                                    download="regional_temp_trends.png" class="btn-secondary btn-sm text-center">
+                                    Download</a>
+                            </div>
+                        </div>
+                        <div class="image-wrapper mt-2">
+                            <h4>Feature Missing Values (Before Imputation)</h4>
+                            <p class="text-small text-muted mb-1">A diagnostic audit showing where data points were
+                                missing from the API. Our pipeline automatically cleaned these gaps during training.</p>
+                            <img src="../outputs/plots/missing_values_bar.png" alt="Missing Values Bar Chart"
+                                class="gallery-img" onerror="this.onerror=null; this.src='fallback.png';">
+                            <div class="image-actions mt-1">
+                                <button class="btn-secondary btn-sm js-zoom"> Fullscreen</button>
+                                <a href="../outputs/plots/missing_values_bar.png" download="missing_values_audit.png"
+                                    class="btn-secondary btn-sm text-center"> Download</a>
+                            </div>
+                        </div>
+                        <div class="image-wrapper mt-2">
+                            <h4>Extreme Weather Anomalies (|Z| > 3.0)</h4>
+                            <p class="text-small text-muted mb-1">Using Z-score mathematics to find days where the
+                                weather was 'impossible' or extremely rare (e.g., severe heatwaves or unexpected cold
+                                snaps).</p>
+                            <img src="../outputs/plots/middlesbrough_anomalies.png" alt="Anomalies Plot"
+                                class="gallery-img" onerror="this.onerror=null; this.src='fallback.png';">
+                            <div class="image-actions mt-1">
+                                <button class="btn-secondary btn-sm js-zoom"> Fullscreen</button>
+                                <a href="../outputs/plots/middlesbrough_anomalies.png"
+                                    download="weather_anomalies_plot.png" class="btn-secondary btn-sm text-center">
+                                    Download</a>
+                            </div>
+                        </div>
+                        <div class="image-wrapper-2 mt-3">
+                            <h4>Multi-City Extreme Weather Anomalies (|Z| > 3.0)</h4>
+                            <p class="text-small text-muted mb-1">Using Z-score mathematics across 10 UK regions to find
+                                days where the weather was 'impossible' or extremely rare.</p>
+                            <img src="../outputs/plots/multi_city_anomalies.png" alt="Multi-City Anomalies Plot"
+                                class="gallery-img-2" onerror="this.onerror=null; this.src='fallback.png';">
+                            <div class="image-actions mt-1">
+                                <button class="btn-secondary btn-sm js-zoom"> Fullscreen</button>
+                                <a href="../outputs/plots/multi_city_anomalies.png" download="multi_city_anomalies.png"
+                                    class="btn-secondary btn-sm text-center"> Download</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: 14-Day Scientific Validation -->
+            <section id="tab-validation" class="tab-content">
+                <div class="glass-card mb-2">
+                    <h3>14-Day Scientific Validation (AI vs Open-Meteo GFS)</h3>
+                    <p>Demonstrating the short-term accuracy boundaries of our deterministic ML models compared against the global Open-Meteo European Centre baseline models (ECMWF & GFS) for the next 14 days.</p>
+                    <div class="controls-row mt-2">
+                        <div class="input-group">
+                            <label for="val-region-select">Region</label>
+                            <select id="val-region-select">
+                                <option value="London">London</option>
+                                <option value="Manchester">Manchester</option>
+                                <option value="Birmingham">Birmingham</option>
+                                <option value="Glasgow">Glasgow</option>
+                                <option value="Middlesbrough">Middlesbrough</option>
+                                <option value="Leeds">Leeds</option>
+                                <option value="Southampton">Southampton</option>
+                                <option value="Liverpool">Liverpool</option>
+                                <option value="Newcastle">Newcastle</option>
+                                <option value="Sheffield">Sheffield</option>
+                            </select>
+                        </div>
+                        <button id="run-val-btn" class="btn-primary">Generate 14-Day Forecast</button>
+                    </div>
+
+                    <!-- Daily Forecast Summary (Google Style Strip) -->
+                    <div id="val-forecast-strip" class="mt-2" style="display: none; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch;">
+                        <!-- JS will inject daily cards here -->
+                    </div>
+
+                    <!-- NEW: Interactive Daily Detail Area (Google Style) -->
+                    <div id="daily-detail-view" class="glass-card" style="display: none; margin-top: 1.5rem; padding: 1.5rem; border: 1px solid rgba(var(--primary-rgb, 92, 107, 192), 0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <button id="prev-day-btn" class="btn-secondary btn-sm" style="padding: 0.4rem 0.8rem;">&larr;</button>
+                                <select id="day-selector" class="date-input" style="padding: 0.4rem 1rem; font-size: 0.9rem; width: auto;"></select>
+                                <button id="next-day-btn" class="btn-secondary btn-sm" style="padding: 0.4rem 0.8rem;">&rarr;</button>
+                            </div>
+                            <h4 id="detail-date-label" style="margin: 0; color: var(--text-muted); font-size: 1rem; font-weight: 500;"></h4>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 3rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                            <div id="detail-sun-icon" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;"></div>
+                            <div>
+                                <span id="detail-main-temp" style="font-size: 4.5rem; font-weight: 800; color: var(--text); line-height: 1;">--°</span>
+                                <p id="detail-condition" style="margin: 0; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 0.5rem;">RESEARCH MODEL FORECAST</p>
+                            </div>
+                        </div>
+
+                        <div style="height: 320px; position: relative; width: 100%;">
+                            <canvas id="detailHourlyChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="mt-2" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div class="glass-card" style="padding: 1.25rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h4 class="text-muted mb-1">Neural Network vs. Baseline</h4>
+                                <div style="display: flex; gap: 5px; background: rgba(0,0,0,0.2); padding: 3px; border-radius: 8px;">
+                                    <button class="view-mode-btn active" data-mode="trend" data-target="nn" style="padding: 4px 10px; font-size: 0.75rem;">14-Day</button>
+                                    <button class="view-mode-btn" data-mode="detail" data-target="nn" style="padding: 4px 10px; font-size: 0.75rem;">Today</button>
+                                </div>
+                            </div>
+                            <div class="chart-container" style="position: relative; height:350px; width:100%;">
+                                <canvas id="validationChart"></canvas>
+                            </div>
+                            <div id="val-summary" class="grid-2 mt-1" style="background: rgba(255,255,255,0.02); padding: 0.75rem; border-radius: 8px; display: none;">
+                                <div class="metric-item"><span>Avg Precision</span><strong id="val-avg-mae">--</strong></div>
+                                <div class="metric-item"><span>Max Delta</span><strong id="val-max-mae">--</strong></div>
+                            </div>
+                        </div>
+
+                        <div class="glass-card" style="padding: 1.25rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h4 class="text-muted mb-1">XGBoost Ensemble vs. Baseline</h4>
+                                <div style="display: flex; gap: 5px; background: rgba(0,0,0,0.2); padding: 3px; border-radius: 8px;">
+                                    <button class="view-mode-btn active" data-mode="trend" data-target="xgb" style="padding: 4px 10px; font-size: 0.75rem;">14-Day</button>
+                                    <button class="view-mode-btn" data-mode="detail" data-target="xgb" style="padding: 4px 10px; font-size: 0.75rem;">Today</button>
+                                </div>
+                            </div>
+                            <div class="chart-container" style="position: relative; height:350px; width:100%;">
+                                <canvas id="validationChartXgb"></canvas>
+                            </div>
+                            <div id="val-summary-xgb" class="grid-2 mt-1" style="background: rgba(255,255,255,0.02); padding: 0.75rem; border-radius: 8px; display: none;">
+                                <div class="metric-item"><span>Avg Precision</span><strong id="val-avg-mae-xgb">--</strong></div>
+                                <div class="metric-item"><span>Max Delta</span><strong id="val-max-mae-xgb">--</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Fullscreen Image Modal -->
+    <div id="image-modal" class="modal hidden">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="modal-img">
+    </div>
+
+    <!-- CSV Viewer Modal -->
+    <div id="csv-modal" class="modal hidden">
+        <div class="modal-container glass-panel">
+            <div class="modal-header">
+                <h3 id="csv-filename">CSV Data Viewer</h3>
+                <span class="close-csv-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="table-container">
+                    <table id="csv-table">
+                        <!-- Data will be injected here -->
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=2"></script>
+</body>
+
+</html>
