@@ -3,7 +3,9 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 data/
-outputs/
+outputs/*
+!outputs/metrics/
+outputs/metrics/*
 !outputs/metrics/drift_history.csv
 !models/
 *.docx
