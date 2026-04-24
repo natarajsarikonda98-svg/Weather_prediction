@@ -4,5 +4,10 @@ __pycache__/
 .ipynb_checkpoints/
 data/
 outputs/
+!outputs/metrics/drift_history.csv
+!models/
+*.docx
+EXPLANATION_GUIDE.txt
+test_dtypes.txt
 .gemini/
 *.log
