@@ -372,9 +372,8 @@ def step_model_training():
     
     base_metrics_path = config.METRICS_DIR / "base_regression_metrics.json"
     if base_metrics_path.exists():
-        choice = input("   [Cache Hit] Base models found. Do you want to retrain them? (y/n): ").strip().lower()
-        if choice != 'y':
-            logging.info("   Skipping base model training.")
+        if os.environ.get('RETRAIN_BASE_MODELS', 'n').lower() != 'y':
+            logging.info("   Skipping base model training (cached results found).")
             tracker.end("Step 5: Model Training & Split", status="SKIP")
             return
         logging.info("   User chose to retrain base models.")
@@ -499,9 +498,8 @@ def step_hyperparameter_tuning():
     
     tuned_path = config.METRICS_DIR / "tuned_params.json"
     if tuned_path.exists():
-        choice = input("   [Cache Hit] Tuned parameters found. Do you want to re-tune? (y/n): ").strip().lower()
-        if choice != 'y':
-            logging.info("   Skipping hyperparameter tuning.")
+        if os.environ.get('RETUNE_MODELS', 'n').lower() != 'y':
+            logging.info("   Skipping hyperparameter tuning (cached params found).")
             tracker.end("Step 7: Hyperparameter Tuning", status="SKIP")
             return
         logging.info("   User chose to re-tune hyperparameters.")

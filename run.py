@@ -40,6 +40,15 @@ if __name__ == "__main__":
 
     print("\n[STEP 1] EXECUTING MACHINE LEARNING PIPELINE\n")
     
+    # Ask user about retraining before launching the subprocess
+    retrain_base = input("   Do you want to retrain base models? (y/n): ").strip().lower()
+    retune = input("   Do you want to re-tune hyperparameters? (y/n): ").strip().lower()
+    
+    # Pass choices to the subprocess via environment variables
+    env = os.environ.copy()
+    env['RETRAIN_BASE_MODELS'] = retrain_base
+    env['RETUNE_MODELS'] = retune
+    
     try:
         # Run the ML Pipeline with LIVE output
         process = subprocess.Popen(
@@ -47,7 +56,8 @@ if __name__ == "__main__":
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            bufsize=1
+            bufsize=1,
+            env=env
         )
         
         # Print output in real-time
