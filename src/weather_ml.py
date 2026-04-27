@@ -372,9 +372,12 @@ def step_model_training():
     
     base_metrics_path = config.METRICS_DIR / "base_regression_metrics.json"
     if base_metrics_path.exists():
-        logging.info("   [Cache Hit] Base models evaluated previously. Skipping heavy training.")
-        tracker.end("Step 5: Model Training & Split", status="SKIP")
-        return
+        choice = input("   [Cache Hit] Base models found. Do you want to retrain them? (y/n): ").strip().lower()
+        if choice != 'y':
+            logging.info("   Skipping base model training.")
+            tracker.end("Step 5: Model Training & Split", status="SKIP")
+            return
+        logging.info("   User chose to retrain base models.")
         
     features_path = config.PROCESSED_DIR / "weather_features.csv"
     if not features_path.exists():
@@ -496,9 +499,12 @@ def step_hyperparameter_tuning():
     
     tuned_path = config.METRICS_DIR / "tuned_params.json"
     if tuned_path.exists():
-        logging.info("   [Cache Hit] Pre-tuned hyperparameters found. Skipping 45-minute grid search.")
-        tracker.end("Step 7: Hyperparameter Tuning", status="SKIP")
-        return
+        choice = input("   [Cache Hit] Tuned parameters found. Do you want to re-tune? (y/n): ").strip().lower()
+        if choice != 'y':
+            logging.info("   Skipping hyperparameter tuning.")
+            tracker.end("Step 7: Hyperparameter Tuning", status="SKIP")
+            return
+        logging.info("   User chose to re-tune hyperparameters.")
         
     features_path = config.PROCESSED_DIR / "weather_features.csv"
     if not features_path.exists():

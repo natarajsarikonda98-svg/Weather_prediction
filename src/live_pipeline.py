@@ -209,7 +209,7 @@ class LivePipeline:
             # Explicit Garbage Collection: Forcefully flush the 660MB Neural Network scaler arrays from RAM
             gc.collect()
             
-        logging.info(f"Catch-up completed successfully. Simulated {len(drift_logs)} daily retrain cycles.")
+        logging.info(f"Catch-up completed successfully. Completed {len(drift_logs)} daily retrain cycles.")
 
     def start_polling_daemon(self):
         """Polls Open-Meteo every 5 minutes (Live Ingestion Phase)"""
@@ -253,6 +253,7 @@ class LivePipeline:
 if __name__ == "__main__":
     import importlib
     import threading
+    from datetime import datetime, timedelta
     
     pipeline = LivePipeline()
     
@@ -263,14 +264,29 @@ if __name__ == "__main__":
     # 2. Daemon loop for continuous autonomous daily retraining (Main Thread)
     while True:
         try:
-            # Reload config dynamically to fetch the newest live date each day
+            # Reload config dynamically to fetch the newest live date
             importlib.reload(config)
             
             pipeline.run_catch_up()
             
-            logging.info(f"Catch-Up Cycle Complete. System will sleep for {config.RETRAIN_INTERVAL_HOURS} hours before checking for new data.")
+            # After catch-up, check if today moved ahead — if so, loop again immediately
+            importlib.reload(config)
+            last = pipeline.get_last_retrained_date()
+            today = pd.to_datetime(datetime.now().strftime("%Y-%m-%d"))
+            
+            if last < today:
+                logging.info("New date detected. Continuing catch-up immediately...")
+                continue  # Skip sleep, loop again
+            
+            # Fully caught up — sleep until midnight
+            now = datetime.now()
+            midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+            sleep_seconds = (midnight - now).total_seconds()
+            logging.info(f"System fully caught up to {today.date()}. Sleeping until midnight ({sleep_seconds/3600:.1f} hours)...")
+            time.sleep(sleep_seconds)
+            
         except Exception as e:
             logging.error(f"Error during Catch-Up Cycle: {e}")
-            logging.info(f"Will attempt again in {config.RETRAIN_INTERVAL_HOURS} hours.")
-            
-        time.sleep(config.RETRAIN_INTERVAL_HOURS * 3600)  # Sleep for the configured interval
+            logging.info("Will retry in 5 minutes...")
+            time.sleep(300)  # Retry in 5 minutes on error
+
