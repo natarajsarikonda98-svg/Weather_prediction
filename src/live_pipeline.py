@@ -182,6 +182,7 @@ class LivePipeline:
             logging.warning("No new data fetched for the catch-up gap.")
             
         # 2. Load the newly rebuilt feature dataset
+        config.ensure_data_unzipped(self.features_file)
         df = pd.read_csv(self.features_file)
         df['datetime'] = pd.to_datetime(df['datetime'], format='mixed')
         

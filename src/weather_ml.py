@@ -241,6 +241,7 @@ def step_fetch_data():
 def step_validate_eda():
     tracker.start("Step 3: Validation & EDA")
     master_df_path = config.RAW_DIR / "weather_master_dataset.csv"
+    config.ensure_data_unzipped(master_df_path)
     if not master_df_path.exists():
         logging.error("   X Master dataset not found!")
         tracker.end("Step 3: Validation & EDA", status="FAIL")
@@ -310,6 +311,7 @@ def step_validate_eda():
 def step_feature_engineering():
     tracker.start("Step 4: Feature Engineering")
     master_df_path = config.RAW_DIR / "weather_master_dataset.csv"
+    config.ensure_data_unzipped(master_df_path)
     if not master_df_path.exists():
         tracker.end("Step 4: Feature Engineering", status="FAIL")
         return
@@ -378,6 +380,7 @@ def step_model_training():
         logging.info("   User chose to retrain base models.")
         
     features_path = config.PROCESSED_DIR / "weather_features.csv"
+    config.ensure_data_unzipped(features_path)
     if not features_path.exists():
         tracker.end("Step 5: Model Training & Split", status="FAIL")
         return
@@ -452,6 +455,7 @@ def step_model_training():
 def step_season_classification():
     tracker.start("Step 6: Season Classification")
     features_path = config.PROCESSED_DIR / "weather_features.csv"
+    config.ensure_data_unzipped(features_path)
     if not features_path.exists():
         tracker.end("Step 6: Season Classification", status="FAIL")
         return
@@ -504,6 +508,7 @@ def step_hyperparameter_tuning():
         logging.info("   User chose to re-tune hyperparameters.")
         
     features_path = config.PROCESSED_DIR / "weather_features.csv"
+    config.ensure_data_unzipped(features_path)
     if not features_path.exists():
         tracker.end("Step 7: Hyperparameter Tuning", status="FAIL")
         return
@@ -556,6 +561,7 @@ def step_optimized_model():
     """Trains Optimized XGBoost and Optimized Neural Network for single-target temperature prediction."""
     tracker.start("Step 8: Optimized Model Training")
     features_path = config.PROCESSED_DIR / "weather_features.csv"
+    config.ensure_data_unzipped(features_path)
     if not features_path.exists():
         tracker.end("Step 8: Optimized Model Training", status="FAIL")
         return

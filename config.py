@@ -1,4 +1,6 @@
 import os
+import zipfile
+import logging
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -18,6 +20,42 @@ WEB_DATA_DIR = BASE_DIR / "dashboard" / "data"
 # Create directories if they don't exist
 for d in [RAW_DIR, PROCESSED_DIR, MODEL_DIR, OUTPUTS_DIR, PLOTS_DIR, REPORTS_DIR, METRICS_DIR, LOGS_DIR, WEB_DATA_DIR]:
     d.mkdir(parents=True, exist_ok=True)
+
+def ensure_data_unzipped(csv_path):
+    """Checks if a CSV exists. If not, looks for its .zip or multi-part .zips and extracts them."""
+    csv_path = Path(csv_path)
+    if csv_path.exists():
+        return True
+    
+    # Check for single zip
+    zip_path = csv_path.with_suffix('.zip')
+    if zip_path.exists():
+        logging.info(f"Extracting {zip_path.name}...")
+        with zipfile.ZipFile(zip_path, 'r') as zf:
+            zf.extractall(csv_path.parent)
+        return True
+    
+    # Check for multi-part zips (e.g., pt1, pt2)
+    base_name = csv_path.stem # e.g. weather_features
+    parts = sorted(csv_path.parent.glob(f"{base_name}_pt*.zip"))
+    if parts:
+        logging.info(f"Detected {len(parts)} data parts. Extracting and merging...")
+        all_dfs = []
+        import pandas as pd
+        for p in parts:
+            with zipfile.ZipFile(p, 'r') as zf:
+                # Assume one csv inside
+                internal_csv = zf.namelist()[0]
+                with zf.open(internal_csv) as f:
+                    all_dfs.append(pd.read_csv(f))
+        
+        # Merge and save as the master CSV
+        full_df = pd.concat(all_dfs, ignore_index=True)
+        full_df.to_csv(csv_path, index=False)
+        logging.info(f"Successfully reconstructed {csv_path.name} from parts.")
+        return True
+    
+    return False
 
 # Live Pipeline & Retraining Configuration
 LIVE_DATA_DIR = DATA_DIR / "live"

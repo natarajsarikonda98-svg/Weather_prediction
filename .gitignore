@@ -4,8 +4,9 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 
-# Data & Documents (Ignore large datasets and doc notes)
-data/
+# Data (Include Zipped datasets, ignore heavy CSVs)
+data/**/*.csv
+!data/**/*.zip
 resources/
 *.docx
 *.txt

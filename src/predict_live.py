@@ -6,6 +6,10 @@ import pandas as pd
 import warnings
 from datetime import datetime, timedelta
 
+# Add parent dir to path to import config
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import config
+
 # CRITICAL FIX: Redirect all stdout printing (from warnings, xgboost, etc) to stderr 
 # to protect the pure JSON response payload back to the Node/JS dashboard.
 _original_stdout = sys.stdout
@@ -40,6 +44,7 @@ def predict_batch(input_data):
     # or just a requested basic date from Tab 2.
     
     pipeline = LivePipeline()
+    config.ensure_data_unzipped(pipeline.features_file)
     
     # Check if we are doing a 'Live' request (last 30 days) or a deep historical audit
     is_historical = False
