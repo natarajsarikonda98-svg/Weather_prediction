@@ -2,11 +2,11 @@
 
 This repository contains a professional implementation for predicting regional weather patterns across the UK. The project evaluates **Optimized XGBoost** and **Optimized Neural Network** architectures and provides a high-fidelity dashboard for result visualization.
 
-### 🛡️ Forensic Hardening & Zero-Negligence Policy
-The system has recently undergone a **"Scorched Earth" forensic audit** to ensure strict academic integrity and production-grade performance:
-*   **Zero Simulation:** All random data generation (`Math.random()`, `np.random()`) has been eradicated. The dashboard runs on 100% authentic ML inference.
-*   **No Data Leakage:** The ML engine utilizes a strict `shift(1)` boundary on all lag and rolling mean features before processing.
-*   **Performance Engineering:** Sub-second JSON inference via `server.py` using a dynamic O(1) "Tail-Read" strategy.
+### 🛡️ System Robustness & Scientific Integrity
+The system is built on a foundation of strict academic integrity and high-performance engineering:
+*   **Deterministic Inference:** The dashboard utilizes 100% authentic ML inference based on historical and real-time atmospheric data.
+*   **Data Integrity:** The ML engine enforces a strict `shift(1)` boundary on all lag and rolling mean features to ensure no data leakage occurs during training or inference.
+*   **Performance Engineering:** Sub-second JSON inference via `server.py` using a dynamic O(1) "Tail-Read" strategy for large-scale datasets.
 
 ## 📂 File Inventory & Purpose
 
@@ -27,7 +27,7 @@ Ensure you are using Python 3.9+ and have an active virtual environment.
 
 ```bash
 # To activate the virtual environment (Windows)
-.\weather_ml_project\venv\Scripts\Activate.ps1
+.\venv\Scripts\Activate.ps1
 
 # Install required dependencies
 pip install -r requirements.txt
@@ -49,5 +49,5 @@ python run.py
 ## 3. Key Academic Features
 *   **Explainable AI (SHAP):** Resolves the black-box problem by highlighting feature importance.
 *   **Concept Drift Mitigation:** Autonomously tracks MAE degradation over time as climate patterns shift.
-*   **Master Error Handling:** The UI is protected from JSON crashes even during catastrophic model failure, demonstrating robust error management.
+*   **Robust Exception Management:** The UI is protected from JSON crashes even during unexpected data interruptions, demonstrating professional error management.
 *   **14-Day Scientific Validation:** Dynamic comparison of baseline ECMWF/GFS forecasts against Custom Neural Network inferences.
