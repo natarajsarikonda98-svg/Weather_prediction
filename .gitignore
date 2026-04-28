@@ -1,14 +1,33 @@
+# Python & Virtual Env
 venv/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+
+# Data & Documents (Ignore large datasets and doc notes)
 data/
-outputs/*
-!outputs/metrics/
-outputs/metrics/*
-!outputs/metrics/drift_history.csv
-!models/
+resources/
 *.docx
+*.txt
+!README.md
+
+# Logs & Temporary Files
 *.log
 *.tmp
 *.bak
+outputs/logs/
+outputs/retrain.flag
+
+# Models (Included so users don't need to retrain)
+!models/
+!models/*.joblib
+
+# Dashboard Assets (Included for immediate visualization)
+!outputs/plots/
+!outputs/reports/
+!outputs/metrics/
+!outputs/webdata/
+
+# Specific exclusions within included folders
+outputs/plots/*.tmp
+outputs/reports/large_debug_*.csv
