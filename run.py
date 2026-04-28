@@ -21,7 +21,7 @@ if __name__ == "__main__":
     # We use 'python -m http.server' to ensure CORS works when accessed via localhost
     try:
         server_process = subprocess.Popen(
-            [sys.executable, "-m", "http.server", str(PORT)],
+            [sys.executable, "server.py"],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
@@ -73,35 +73,42 @@ if __name__ == "__main__":
         # NOW open the browser
         print("\n[SYSTEM] Opening Dashboard...")
         webbrowser.open_new_tab(f"http://localhost:{PORT}/dashboard/index.html")
+        
+        # [STEP 2] STARTING LIVE PIPELINE & CATCH-UP ENGINE
+        print("\n[STEP 2] STARTING LIVE PIPELINE & CATCH-UP ENGINE\n")
+        live_process = subprocess.Popen(
+            [sys.executable, "src/live_pipeline.py"],
+            stdout=sys.stdout,   
+            stderr=sys.stderr
+        )
+        print("[OK] Background Catch-Up Engine started.")
+        
     except subprocess.CalledProcessError:
         print("\n[X] The ML Pipeline failed. Review the logs above.")
         server_process.terminate()
         sys.exit(1)
     except KeyboardInterrupt:
-        print("\n[!] Execution interrupted by user during ML Pipeline.")
+        print("\n[!] Execution interrupted by user.")
         server_process.terminate()
+        if 'live_process' in locals():
+            live_process.terminate()
         sys.exit(1)
-    print("\n[STEP 2] STARTING LIVE PIPELINE & CATCH-UP ENGINE\n")
-    try:
-        live_process = subprocess.Popen(
-            [sys.executable, "src/live_pipeline.py"],
-            stdout=sys.stdout,   # Pipe output to main terminal so user can monitor catch-up
-            stderr=sys.stderr
-        )
-        print("[OK] Background Catch-Up Engine started.")
-    except Exception as e:
-        print(f"[ERROR] Could not start Live Pipeline: {e}")
-        
+
     print("\n[STEP 3] DASHBOARD IS LIVE")
     print(f"To interact with results, visit: http://localhost:{PORT}/dashboard/index.html")
     print("KEEP THIS TERMINAL OPEN to maintain the connection and watch the Catch-Up engine retrain.")
     print("\n(Press Ctrl+C to stop both the dashboard server and background engine)\n")
     
     try:
-        # Keep the main process alive to maintain the server
-        server_process.wait()
-        if 'live_process' in locals():
-            live_process.wait()
+        # Avoid blocking .wait() which can hide crashes
+        while True:
+            time.sleep(1)
+            if server_process.poll() is not None:
+                print("\n[!] Web Server process died unexpectedly.")
+                break
+            if 'live_process' in locals() and live_process.poll() is not None:
+                print("\n[!] Live Pipeline process died unexpectedly.")
+                break
     except KeyboardInterrupt:
         print("\n[SYSTEM] Shutting down server and live engine...")
         server_process.terminate()

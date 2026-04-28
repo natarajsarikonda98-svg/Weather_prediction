@@ -197,17 +197,17 @@ def step_fetch_data():
                 all_data.append({
                     "datetime": times[i],
                     "region": region,
-                    "temperature": hourly.get('temperature_2m', [0])[i] or 0,
-                    "feels_like": hourly.get('apparent_temperature', [0])[i] or 0,
-                    "precipitation": hourly.get('precipitation', [0])[i] or 0,
-                    "rain": hourly.get('rain', [0])[i] or 0,
-                    "snowfall": hourly.get('snowfall', [0])[i] or 0,
-                    "wind_speed": hourly.get('wind_speed_10m', [0])[i] or 0,
-                    "wind_direction": hourly.get('wind_direction_10m', [0])[i] or 0,
-                    "humidity": hourly.get('relative_humidity_2m', [0])[i] or 0,
-                    "dew_point": hourly.get('dew_point_2m', [0])[i] or 0,
-                    "pressure": hourly.get('pressure_msl', [0])[i] or 0,
-                    "cloud_cover": hourly.get('cloud_cover', [0])[i] or 0,
+                    "temperature": hourly.get('temperature_2m', [np.nan])[i],
+                    "feels_like": hourly.get('apparent_temperature', [np.nan])[i],
+                    "precipitation": hourly.get('precipitation', [np.nan])[i],
+                    "rain": hourly.get('rain', [np.nan])[i],
+                    "snowfall": hourly.get('snowfall', [np.nan])[i],
+                    "wind_speed": hourly.get('wind_speed_10m', [np.nan])[i],
+                    "wind_direction": hourly.get('wind_direction_10m', [np.nan])[i],
+                    "relative_humidity_2m": hourly.get('relative_humidity_2m', [np.nan])[i],
+                    "dew_point_2m": hourly.get('dew_point_2m', [np.nan])[i],
+                    "pressure_msl": hourly.get('pressure_msl', [np.nan])[i],
+                    "cloud_cover": hourly.get('cloud_cover', [np.nan])[i],
                 })
             
             logging.info(f"      {region} {year}: {len(times)} hourly records downloaded")
@@ -324,19 +324,18 @@ def step_feature_engineering():
     df['datetime'] = pd.to_datetime(df['datetime'], format='mixed')
     df.sort_values(by=['region', 'datetime'], inplace=True)
     
-    # 1. Temporal Lags for hourly data
-    # Lag 1 = 1 hour, Lag 6 = 6 hours, Lag 24 = 1 day
+    # 1. Temporal Lags for hourly data (Shifted by 1 to prevent data leakage)
     lag_cols = ['temperature', 'precipitation', 'wind_speed', 'humidity', 'pressure']
     for col in lag_cols:
         df[f'{col}_lag1'] = df.groupby('region')[col].shift(1)
         df[f'{col}_lag6'] = df.groupby('region')[col].shift(6)
         df[f'{col}_lag24'] = df.groupby('region')[col].shift(24)
         
-    # 2. Rolling averages (6 hour and 24 hour)
-    df['temp_roll6'] = df.groupby('region')['temperature'].transform(lambda x: x.rolling(6, min_periods=1).mean())
-    df['temp_roll24'] = df.groupby('region')['temperature'].transform(lambda x: x.rolling(24, min_periods=1).mean())
-    df['wind_roll6'] = df.groupby('region')['wind_speed'].transform(lambda x: x.rolling(6, min_periods=1).mean())
-    df['precip_roll24'] = df.groupby('region')['precipitation'].transform(lambda x: x.rolling(24, min_periods=1).sum())
+    # 2. Rolling averages (Shifted by 1 to prevent data leakage)
+    df['temp_roll6'] = df.groupby('region')['temperature'].transform(lambda x: x.shift(1).rolling(6, min_periods=1).mean())
+    df['temp_roll24'] = df.groupby('region')['temperature'].transform(lambda x: x.shift(1).rolling(24, min_periods=1).mean())
+    df['wind_roll6'] = df.groupby('region')['wind_speed'].transform(lambda x: x.shift(1).rolling(6, min_periods=1).mean())
+    df['precip_roll24'] = df.groupby('region')['precipitation'].transform(lambda x: x.shift(1).rolling(24, min_periods=1).sum())
     
     # 3. Hour of Day & Day of Year
     df['hour'] = df['datetime'].dt.hour

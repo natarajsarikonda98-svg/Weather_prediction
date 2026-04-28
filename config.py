@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Base Paths
 BASE_DIR = Path(__file__).resolve().parent
@@ -24,7 +24,10 @@ LIVE_DATA_DIR = DATA_DIR / "live"
 LIVE_DATA_DIR.mkdir(parents=True, exist_ok=True)
 RETRAIN_INTERVAL_HOURS = 24
 LIVE_FETCH_INTERVAL_SECONDS = 300  # 5 minutes (polls 15-minute resolution data)
-CATCH_UP_MAX_DATE = datetime.now().strftime("%Y-%m-%d")   # Phase 2: Full catch-up to dynamic live date
+
+# CRITICAL LOGIC FIX: 'Just finished' day means Yesterday. 
+# We target the last completed 24-hour cycle to prevent 400 errors and redundant processing.
+CATCH_UP_MAX_DATE = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")   
 DRIFT_HISTORY_FILE = METRICS_DIR / "drift_history.csv"
 
 # 10 Regions for the Master Project

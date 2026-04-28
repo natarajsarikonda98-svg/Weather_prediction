@@ -163,15 +163,18 @@ class LivePipeline:
         """The Catch-Up Engine."""
         logging.info("Starting Historical Catch-Up Engine...")
         last_date = self.get_last_retrained_date()
-        target_max_date = pd.to_datetime(config.CATCH_UP_MAX_DATE)
+        # CRITICAL FIX: The 'just finished' day is Yesterday. We NEVER target 'Now' (Today) for an Archive fetch.
+        target_max_date = pd.to_datetime(config.CATCH_UP_MAX_DATE)   # Yesterday string
+        
+        logging.info(f"Last processed: {last_date.date()} | Goal (Finished Day): {target_max_date.date()}")
         
         if last_date >= target_max_date:
-            logging.info("System is fully caught up to CATCH_UP_MAX_DATE. No catch-up needed.")
+            logging.info("System is already fully caught up to the last completed 24-hour cycle. No catch-up needed.")
             return
 
         start_fetch_date = last_date + timedelta(days=1)
         
-        # 1. Fetch missing raw data chunk
+        # 1. Fetch missing raw data chunk (Up to yesterday)
         new_raw_df = self.fetch_missing_historical_data(start_fetch_date, target_max_date)
         if not new_raw_df.empty:
             self.update_master_dataset(new_raw_df)
@@ -192,6 +195,7 @@ class LivePipeline:
         
         import gc
         while current_retrain_date <= target_max_date:
+            # Audit Check: Only retrain if we are NOT targeting an empty 'today' slot
             xgb_mae, nn_mae = self._train_and_evaluate_day(df, current_retrain_date)
             
             if xgb_mae is not None and nn_mae is not None:
@@ -248,7 +252,17 @@ class LivePipeline:
             except Exception as e:
                 logging.error(f"Error in 5-minute live polling daemon: {e}")
                 
-            time.sleep(config.LIVE_FETCH_INTERVAL_SECONDS)
+            # Responsive sleep checking for manual retrain flag every 1 second
+            for _ in range(config.LIVE_FETCH_INTERVAL_SECONDS):
+                flag_file = config.OUTPUTS_DIR / "retrain.flag"
+                if flag_file.exists():
+                    flag_file.unlink()
+                    try:
+                        from force_retrain_hourly import force_catch_up_hourly
+                        force_catch_up_hourly()
+                    except Exception as e:
+                        logging.error(f"Error during manual hourly retrain: {e}")
+                time.sleep(1)
 
 if __name__ == "__main__":
     import importlib
