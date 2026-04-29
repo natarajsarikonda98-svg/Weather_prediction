@@ -2,11 +2,6 @@
 
 This repository contains a professional implementation for predicting regional weather patterns across the UK. The project evaluates **Optimized XGBoost** and **Optimized Neural Network** architectures and provides a high-fidelity dashboard for result visualization.
 
-### 🛡️ System Robustness & Scientific Integrity
-The system is built on a foundation of strict academic integrity and high-performance engineering:
-*   **Deterministic Inference:** The dashboard utilizes 100% authentic ML inference based on historical and real-time atmospheric data.
-*   **Data Integrity:** The ML engine enforces a strict `shift(1)` boundary on all lag and rolling mean features to ensure no data leakage occurs during training or inference.
-*   **Performance Engineering:** Sub-second JSON inference via `server.py` using a dynamic O(1) "Tail-Read" strategy for large-scale datasets.
 
 ## 📂 File Inventory & Purpose
 
