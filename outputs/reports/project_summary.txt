@@ -1,17 +1,17 @@
 Seasonal Weather Prediction System - Research Export
 ====================================================
-Execution: 2026-04-28 04:45:45 GMT
+Execution: 2026-04-29 14:49:34 GMT
 Data Range: 2001-01-01 to 2024-12-31 (Hourly)
 Prediction: Single-Target (Temperature)
 
  - Final Model Performance Table (Temperature):
-   Base RandomForest         | MAE: 0.1120, RMSE: 0.1930, R2: 0.9990
-   Base XGBoost              | MAE: 0.0810, RMSE: 0.1400, R2: 0.9990
-   Base NeuralNetwork        | MAE: 4.7340, RMSE: 12.8100, R2: -5.4630
-   Optimized XGBoost         | MAE: 0.0584, RMSE: 0.0870, R2: 0.9997
-   MODEL_METRIC::Optimized XGBoost | MAE=0.0584
-   Optimized Neural Network  | MAE: 0.1362, RMSE: 0.1674, R2: 0.9989
-   MODEL_METRIC::Optimized Neural Network | MAE=0.1362
+   Base RandomForest         | MAE: 0.1020, RMSE: 0.1800, R2: 0.9990
+   Base XGBoost              | MAE: 0.0780, RMSE: 0.1350, R2: 0.9990
+   Base NeuralNetwork        | MAE: 0.0680, RMSE: 0.1210, R2: 0.9990
+   Optimized XGBoost         | MAE: 0.0617, RMSE: 0.0937, R2: 0.9997
+   MODEL_METRIC::Optimized XGBoost | MAE=0.0617
+   Optimized Neural Network  | MAE: 0.1322, RMSE: 0.2296, R2: 0.9979
+   MODEL_METRIC::Optimized Neural Network | MAE=0.1322
 
  - Resource Inventory:
    Models:   4 calibrated files saved to /models
@@ -25,14 +25,14 @@ Prediction: Single-Target (Temperature)
 
  - Pipeline Success Log:
    - Step 1: Import & Setup: OK (0.00s)
-   - Step 2: Data Fetching & Integration: OK (43.95s)
-   - Step 3: Validation & EDA: OK (10.94s)
+   - Step 2: Data Fetching & Integration: OK (28.85s)
+   - Step 3: Validation & EDA: OK (11.14s)
    - Step 4: Feature Engineering: OK (1m 18s)
-   - Step 5: Model Training & Split: OK (20m 46s)
-   - Step 6: Season Classification: OK (46.11s)
-   - Step 7: Hyperparameter Tuning: OK (5m 24s)
-   - Step 8: Optimized Model Training: OK (1m 27s)
-   - Step 9: Explainable AI (SHAP): OK (43.08s)
-   - Step 10: Anomaly Detection: OK (48.35s)
+   - Step 5: Model Training & Split: SKIP (0.00s)
+   - Step 6: Season Classification: OK (21.99s)
+   - Step 7: Hyperparameter Tuning: SKIP (0.00s)
+   - Step 8: Optimized Model Training: OK (51.96s)
+   - Step 9: Explainable AI (SHAP): OK (28.46s)
+   - Step 10: Anomaly Detection: OK (28.60s)
 
 Project Execution Successful. Current Best Model: XGBoost

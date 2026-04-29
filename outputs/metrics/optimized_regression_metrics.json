@@ -2,13 +2,13 @@
     "temperature": {
         "label": "Temperature (\u00b0C)",
         "Optimized Neural Network": {
-            "MAE": 0.1362,
-            "RMSE": 0.1674,
-            "R2": 0.9989
+            "MAE": 0.1322,
+            "RMSE": 0.2296,
+            "R2": 0.9979
         },
         "Optimized XGBoost": {
-            "MAE": 0.0584,
-            "RMSE": 0.087,
+            "MAE": 0.0617,
+            "RMSE": 0.0937,
             "R2": 0.9997
         },
         "best_model": "XGBoost"

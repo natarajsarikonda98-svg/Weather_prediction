@@ -46,6 +46,11 @@ python run.py
 2.  **Live Daemon**: The pipeline checks for "Yesterday's" data and handles any missing historical blocks.
 3.  **Dashboard Launch**: Opens the live dashboard, which is now fully synced with the backend Python processes.
 
+> [!IMPORTANT]
+> **Startup Prompts:** When you run `python run.py`, the terminal will ask if you want to retrain the base models or re-tune hyperparameters. 
+> - Type **`n`** (no) for both to boot the dashboard instantly using the pre-calculated models included in the repo. 
+> - Type **`y`** (yes) if you wish to re-perform the 35-minute scientific training cycle from scratch.
+
 ## 3. Key Academic Features
 *   **Explainable AI (SHAP):** Resolves the black-box problem by highlighting feature importance.
 *   **Concept Drift Mitigation:** Autonomously tracks MAE degradation over time as climate patterns shift.

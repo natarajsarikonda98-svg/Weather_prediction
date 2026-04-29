@@ -284,12 +284,12 @@ if __name__ == "__main__":
             
             pipeline.run_catch_up()
             
-            # After catch-up, check if today moved ahead — if so, loop again immediately
+            # After catch-up, check if the target catch-up day moved ahead — if so, loop again immediately
             importlib.reload(config)
             last = pipeline.get_last_retrained_date()
-            today = pd.to_datetime(datetime.now().strftime("%Y-%m-%d"))
+            target_max_date = pd.to_datetime(config.CATCH_UP_MAX_DATE)
             
-            if last < today:
+            if last < target_max_date:
                 logging.info("New date detected. Continuing catch-up immediately...")
                 continue  # Skip sleep, loop again
             
@@ -297,7 +297,7 @@ if __name__ == "__main__":
             now = datetime.now()
             midnight = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
             sleep_seconds = (midnight - now).total_seconds()
-            logging.info(f"System fully caught up to {today.date()}. Sleeping until midnight ({sleep_seconds/3600:.1f} hours)...")
+            logging.info(f"System fully caught up to {target_max_date.date()}. Sleeping until midnight ({sleep_seconds/3600:.1f} hours)...")
             time.sleep(sleep_seconds)
             
         except Exception as e:

@@ -1,6 +1,6 @@
 Model,MAE,RMSE,R2
-Base RandomForest,0.112,0.193,0.999
-Base XGBoost,0.081,0.14,0.999
-Base NeuralNetwork,4.734,12.81,-5.463
-Optimized XGBoost,0.0584,0.087,0.9997
-Optimized Neural Network,0.1362,0.1674,0.9989
+Base RandomForest,0.102,0.18,0.999
+Base XGBoost,0.078,0.135,0.999
+Base NeuralNetwork,0.068,0.121,0.999
+Optimized XGBoost,0.0617,0.0937,0.9997
+Optimized Neural Network,0.1322,0.2296,0.9979

@@ -67,33 +67,31 @@ def force_catch_up_hourly():
         numeric_cols = df.select_dtypes(include=['float64']).columns
         df[numeric_cols] = df[numeric_cols].astype(np.float32)
         
-        # Evaluation Lock: We only log 'Drift' and mark a day as 'Evaluated' if it's over.
-        # If it's 23:28 on the 27th, the 27th is NOT finished. We evaluate up to the 26th.
-        evaluation_target = (now - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        # MANUAL OVERRIDE: We bypass the 24-hour 'Evaluation Lock' to provide a live performance snapshot.
+        # We evaluate the accuracy on the current day (from 00:00 up to the current hour).
+        evaluation_target = now.replace(hour=0, minute=0, second=0, microsecond=0)
         
-        if last_date >= evaluation_target.replace(tzinfo=None):
-            logging.info("Manual Sync successfully fetched data, but the most recent finished day was already evaluated. Model updated with latest features, drift log remains steady.")
-        else:
-            logging.info(f"Evaluating model drift for newly completed cycle: {evaluation_target.date()}")
-            xgb_mae, nn_mae = pipeline._train_and_evaluate_day(df, evaluation_target)
+        logging.info(f"Bypassing Evaluation Lock. Calculating Live MAE Snapshot for {evaluation_target.date()} ({now.hour} hours of data)...")
+        logging.info(f"Evaluating model drift for newly completed cycle: {evaluation_target.date()}")
+        xgb_mae, nn_mae = pipeline._train_and_evaluate_day(df, evaluation_target)
             
-            if xgb_mae is not None and nn_mae is not None:
-                logging.info(f"Manual Eval Complete. XGB MAE: {xgb_mae:.4f}, NN MAE: {nn_mae:.4f}")
-                pd.DataFrame([{
-                    'date': evaluation_target.strftime("%Y-%m-%d"),
-                    'xgb_mae': xgb_mae,
-                    'nn_mae': nn_mae
-                }]).to_csv(pipeline.drift_file, mode='a', header=False, index=False)
-            
-            # Log heavily so the user sees it in run.log via the dashboard UI
-            with open(config.LOGS_DIR / "run.log", "a") as f:
-                f.write(f"\n======================================================================\n")
-                f.write(f"Pipeline Run: {now.strftime('%Y-%m-%d %H:%M:%S')} (MANUAL HOURLY SYNC)\n")
-                f.write(f"  Data Gap Filled: {past_days} days of sub-hourly resolution up to current hour.\n")
-                f.write(f"  Master Dataset & Feature Matrix Restored.\n")
-                f.write(f"  Recompiling Neural Matrices (Hot-Swap Enabled).\n")
-                f.write(f"  System is now synced EXACTLY up to {now.strftime('%H:00')}.\n")
-                f.write(f"======================================================================\n")
+        if xgb_mae is not None and nn_mae is not None:
+            logging.info(f"Manual Eval Complete. XGB MAE: {xgb_mae:.4f}, NN MAE: {nn_mae:.4f}")
+            pd.DataFrame([{
+                'date': evaluation_target.strftime("%Y-%m-%d"),
+                'xgb_mae': xgb_mae,
+                'nn_mae': nn_mae
+            }]).to_csv(pipeline.drift_file, mode='a', header=False, index=False)
+        
+        # Log heavily so the user sees it in run.log via the dashboard UI
+        with open(config.LOGS_DIR / "run.log", "a") as f:
+            f.write(f"\n======================================================================\n")
+            f.write(f"Pipeline Run: {now.strftime('%Y-%m-%d %H:%M:%S')} (MANUAL HOURLY SYNC)\n")
+            f.write(f"  Data Gap Filled: {past_days} days of sub-hourly resolution up to current hour.\n")
+            f.write(f"  Master Dataset & Feature Matrix Restored.\n")
+            f.write(f"  Recompiling Neural Matrices (Hot-Swap Enabled).\n")
+            f.write(f"  System is now synced EXACTLY up to {now.strftime('%H:00')}.\n")
+            f.write(f"======================================================================\n")
     else:
         logging.warning("No data retrieved during catch-up sequence.")
         

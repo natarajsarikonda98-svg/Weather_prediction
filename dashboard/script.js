@@ -134,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ─── LOAD DATA ────────────────────────────────────────────────────────────
+    startRetrainCountdown(); 
     loadDashboardData();
     loadDashboardKPIs();
     loadDriftChart();
@@ -141,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupLivePrediction();
     setupSettingsPanel(); 
     setupChartActions();
-    startRetrainCountdown(); 
 
     // PRO HARDENING: Robust Download Delegation
     document.addEventListener('click', (e) => {

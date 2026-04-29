@@ -3,18 +3,18 @@
         "label": "Temperature (\u00b0C)",
         "models": {
             "RandomForest": {
-                "MAE": 0.112,
-                "RMSE": 0.193,
+                "MAE": 0.102,
+                "RMSE": 0.18,
                 "R2": 0.999
             },
             "NeuralNetwork": {
-                "MAE": 4.734,
-                "RMSE": 12.81,
-                "R2": -5.463
+                "MAE": 0.068,
+                "RMSE": 0.121,
+                "R2": 0.999
             },
             "XGBoost": {
-                "MAE": 0.081,
-                "RMSE": 0.14,
+                "MAE": 0.078,
+                "RMSE": 0.135,
                 "R2": 0.999
             }
         }

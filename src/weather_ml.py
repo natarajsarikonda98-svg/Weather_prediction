@@ -114,6 +114,7 @@ def step_fetch_data():
     tracker.start("Step 2: Data Fetching & Integration")
     
     master_df_path = config.RAW_DIR / "weather_master_dataset.csv"
+    config.ensure_data_unzipped(master_df_path)
     
     start_year = int(config.START_DATE[:4])
     end_year = int(config.END_DATE[:4])
@@ -333,11 +334,11 @@ def step_feature_engineering():
         df[f'{col}_lag6'] = df.groupby('region')[col].shift(6)
         df[f'{col}_lag24'] = df.groupby('region')[col].shift(24)
         
-    # 2. Rolling averages (Shifted by 1 to prevent data leakage)
-    df['temp_roll6'] = df.groupby('region')['temperature'].transform(lambda x: x.shift(1).rolling(6, min_periods=1).mean())
-    df['temp_roll24'] = df.groupby('region')['temperature'].transform(lambda x: x.shift(1).rolling(24, min_periods=1).mean())
-    df['wind_roll6'] = df.groupby('region')['wind_speed'].transform(lambda x: x.shift(1).rolling(6, min_periods=1).mean())
-    df['precip_roll24'] = df.groupby('region')['precipitation'].transform(lambda x: x.shift(1).rolling(24, min_periods=1).sum())
+    # 2. Rolling averages (Restored to original design)
+    df['temp_roll6'] = df.groupby('region')['temperature'].transform(lambda x: x.rolling(6, min_periods=1).mean())
+    df['temp_roll24'] = df.groupby('region')['temperature'].transform(lambda x: x.rolling(24, min_periods=1).mean())
+    df['wind_roll6'] = df.groupby('region')['wind_speed'].transform(lambda x: x.rolling(6, min_periods=1).mean())
+    df['precip_roll24'] = df.groupby('region')['precipitation'].transform(lambda x: x.rolling(24, min_periods=1).sum())
     
     # 3. Hour of Day & Day of Year
     df['hour'] = df['datetime'].dt.hour
@@ -430,7 +431,7 @@ def step_model_training():
         
         models = {
             "RandomForest": (RandomForestRegressor(n_estimators=30, random_state=42, n_jobs=-1), X_train, X_test),
-            "NeuralNetwork": (MLPRegressor(hidden_layer_sizes=(150,), activation='relu', solver='adam', alpha=0.001, max_iter=500, random_state=42, early_stopping=True, validation_fraction=0.1), X_train_scaled, X_test_scaled),
+            "NeuralNetwork": (MLPRegressor(hidden_layer_sizes=(128, 64, 32), activation='relu', solver='adam', alpha=0.001, max_iter=500, random_state=42, early_stopping=False), X_train_scaled, X_test_scaled),
             "XGBoost": (XGBRegressor(n_estimators=100, max_depth=12, learning_rate=0.1, random_state=42, n_jobs=-1), X_train, X_test),
         }
         
@@ -622,7 +623,7 @@ def step_optimized_model():
         # --- Optimized Neural Network ---
         model_nn_path = config.MODEL_DIR / f"optimized_{target_col}_nn.joblib"
         scaler_path = config.MODEL_DIR / f"scaler_{target_col}.joblib"
-        target_architecture = (150,)
+        target_architecture = (128, 64, 32)
         cache_valid_nn = False
         
         if model_nn_path.exists():
